@@ -30,9 +30,39 @@ weaponsPerMurderer = {
         'White': ['Rope', 'Dagger', 'Lead Pipe', 'Lead Pipe','Candlestick', 
             'Candlestick', 'Revolver', 'Wrench', 'Wrench']}
 
-def detective():
-    players = {'p1':[], 'p2':[], 'p3':[], 'p4':[], 'p5':[], 'p6'[]}
+class ProbabilityList:
+    def __init__(self, li):
+        self.probMap = {}
+        for obj in li:
+            self.probMap[obj] = 1.0/len(li)
+    
+    def getLength(self):
+        return len(self.probMap)
+    
+    def remove(self, obj):
+        self.probMap.pop(obj, None)
+        for key in self.probMap:
+            self.probMap[key] = 1.0/len(probMap)
+
+    def removeAll(self, li):
+        for obj in li:
+            self.probMap.pop(obj, None)
+        for key in self.probMap:
+            self.probMap[key] = 1.0/len(probMap)
+
+def detective(murderer, murderWeapon, startRoom, endRoom):
+    players = {0:[], 1:[], 2:[], 3:[], 4:[], 5:[]}
     cards = people + weapons + rooms
+    cards.remove(murderer)
+    cards.remove(murderWeapon)
+    cards.remove(endRoom)
+    
+    #deal cards out to players
+    random.shuffle(cards)
+    while cards:
+        for i in range(6):
+            players[i].append(cards.pop())
+
 
 def main():    
     #Pick a weapon, room, and murderer based on the logic rules
@@ -49,6 +79,9 @@ def main():
     print("murderer: ", murderer, "\nweapon: ", murderWeapon, 
         "\nstart room: ", startRoom, "\nend room: ", endRoom, "\n")
     
+    detective(murderer, murderWeapon, startRoom, endRoom)
+
+
 if __name__ == '__main__':
     try:
         main()
