@@ -10,7 +10,7 @@ adjacentRooms = {'Study': ['Study', 'Hall', 'Library'],
         'Hall': ['Hall', 'Study', 'Lounge'],
         'Lounge': ['Lounge', 'Hall', 'Dining'], 
         'Dining': ['Dining', 'Lounge', 'Kitchen'],
-        'Kitchen': ['Kitchen', 'Dining', 'Ballrooom'], 
+        'Kitchen': ['Kitchen', 'Dining', 'Ballroom'], 
         'Ballroom': ['Ballroom', 'Conservatory','Kitchen'], 
         'Conservatory': ['Conservatory', 'Ballroom', 'Billiard'],
         'Billiard': ['Billiard', 'Conservatory', 'Library'], 
@@ -46,10 +46,14 @@ class ProbabilityList:
         self.computeProbabilities()
 
     def computeProbabilities(self):
+        females = 0
+
         for obj in people:
             self.peopleMap[obj] = 0.0
         for obj in self.people:
             self.peopleMap[obj] += 1.0/len(self.people)
+            if obj == 'Scarlett' or obj == 'Peacock' or obj == 'White':
+                females += 1
         
         for obj in weapons:
             self.weaponMap[obj] = 0.0
@@ -60,7 +64,28 @@ class ProbabilityList:
             self.roomMap[obj] = 0.0
         for obj in self.rooms:
             self.roomMap[obj] += 1.0/len(self.rooms)
+        
+        return females
     
+    def haveGoodGuess(self):
+        person = None
+        weapon = None
+        room = None
+
+        for obj in self.people:
+            if self.peopleMap[obj] >= 0.8:
+                person = obj
+        for obj in self.rooms:
+            if self.roomMap[obj] >= 0.8:
+                room = obj
+        for obj in set(self.weapons):
+            if self.weaponMap[obj] >= 0.8:
+                weapon = obj
+        if person and weapon and room:
+            return (person, room, weapon)
+        else:
+            return False
+
     def remove(self, obj):
         if obj in people:
             self.removePerson(obj)
@@ -70,22 +95,57 @@ class ProbabilityList:
             self.removeRoom(obj)
 
     def removePerson(self, obj):
-        self.people.remove(obj)
+        try:
+            self.people.remove(obj)
+        except:
+            pass
         for w in weaponsPerMurderer[obj]:
             try:
                 self.weapons.remove(w)
             except:
                 pass
+        females = self.computeProbabilities()
+        if females == len(self.people):
+            for r in self.rooms:
+                if not r in adjacentRooms[self.endRoom]:
+                    self.rooms.remove(r)
         self.computeProbabilities()
-
+            
+    
     def removeWeapon(self, obj):
         for w in self.weapons:
             if w == obj:
                 self.weapons.remove(w)
         self.computeProbabilities()
+        if not ("Wrench" in self.weapons or "Lead Pipe" in self.weapons):
+            self.removePerson("Green")
+        
+        if len(self.weapons) == 1 and "Revolver" in self.weapons:
+            self.removePerson("Mustard")
+
+        if len(self.weapons) == 1 and "Rope" in self.weapons:
+            self.removePerson("Peacock")
+        
+        if len(self.weapons) == 1 and "Dagger" in self.weapons:
+            self.removePerson("Plum")
+            self.removePerson("Scarlett")
     
     def removeRoom(self, obj):
-        self.rooms.remove(obj)
+        try:
+            self.rooms.remove(obj)
+        except:
+            pass
+        
+        adj = False
+        for r in self.rooms:
+            if r in adjacentRooms[self.endRoom]:
+                adj = True
+        
+        if not adj:
+            for p in self.people:
+                if p == "Scarlett" or p == "Peacock" or p == "White":
+                    self.people.remove(p)
+        
         self.computeProbabilities()
 
     def printProbabilities(self):
@@ -112,13 +172,19 @@ def detective(murderer, murderWeapon, startRoom, endRoom):
             players[i].append(cards.pop())
     
     plist = ProbabilityList(endRoom)
+    
+    counter = 1
 
     for i in range(3):
         for j in range(6):
             obj = players[j].pop()
-            print("********Drew: ", obj)
+            print("*********", counter, " Draw... Drew: ", obj)
             plist.remove(obj)
             plist.printProbabilities()
+            counter += 1
+            guess = plist.haveGoodGuess()
+            if guess:
+                return guess
 
 def main():    
     #Pick a weapon, room, and murderer based on the logic rules
@@ -135,8 +201,10 @@ def main():
     print("murderer: ", murderer, "\nweapon: ", murderWeapon, 
         "\nstart room: ", startRoom, "\nend room: ", endRoom, "\n")
     
-    detective(murderer, murderWeapon, startRoom, endRoom)
-
+    guess = detective(murderer, murderWeapon, startRoom, endRoom)
+    
+    print("Detective guess: ", guess)
+    print("Actual: ", (murderer, startRoom, murderWeapon))
 
 if __name__ == '__main__':
     try:
