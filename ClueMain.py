@@ -31,35 +31,71 @@ weaponsPerMurderer = {
             'Candlestick', 'Revolver', 'Wrench', 'Wrench']}
 
 class ProbabilityList:
-    def __init__(self, li):
-        self.probMap = {}
-        for obj in li:
-            self.probMap[obj] = 1.0/len(li)
-    
-    def getLength(self):
-        return len(self.probMap)
+    def __init__(self, endRoom):
+        self.endRoom = endRoom
+        self.peopleMap = {}
+        self.weaponMap = {}
+        self.roomMap = {}
+        self.weapons = []
+        for m in weaponsPerMurderer:
+            self.weapons += weaponsPerMurderer[m]
+        print(self.weapons)
+        self.rooms = list(rooms)
+        self.people = list(people)
+        
+        self.computeProbabilities()
+
+    def computeProbabilities(self):
+        for obj in people:
+            self.peopleMap[obj] = 0.0
+        for obj in self.people:
+            self.peopleMap[obj] += 1.0/len(self.people)
+        
+        for obj in weapons:
+            self.weaponMap[obj] = 0.0
+        for obj in self.weapons:
+            self.weaponMap[obj] += 1.0/len(self.weapons)
+
+        for obj in rooms:
+            self.roomMap[obj] = 0.0
+        for obj in self.rooms:
+            self.roomMap[obj] += 1.0/len(self.rooms)
     
     def remove(self, obj):
-        try:
-            self.probMap.pop(obj, None)
-        except:
-            pass
-        for key in self.probMap:
-            self.probMap[key] = 1.0/len(self.probMap)
+        if obj in people:
+            self.removePerson(obj)
+        elif obj in weapons:
+            self.removeWeapon(obj)
+        elif obj in rooms:
+            self.removeRoom(obj)
 
-    def removeAll(self, li):
-        for obj in li:
+    def removePerson(self, obj):
+        self.people.remove(obj)
+        for w in weaponsPerMurderer[obj]:
             try:
-                self.probMap.pop(obj, None)
+                self.weapons.remove(w)
             except:
                 pass
-        for key in self.probMap:
-            self.probMap[key] = 1.0/len(self.probMap)
+        self.computeProbabilities()
+
+    def removeWeapon(self, obj):
+        for w in self.weapons:
+            if w == obj:
+                self.weapons.remove(w)
+        self.computeProbabilities()
+    
+    def removeRoom(self, obj):
+        self.rooms.remove(obj)
+        self.computeProbabilities()
 
     def printProbabilities(self):
-        for key in self.probMap:
-            print(key, ": ", self.probMap[key])
-
+        for p in self.people:
+            print(p, ": ", self.peopleMap[p])
+        for w in set(self.weapons):
+            print(w, ": ", self.weaponMap[w])
+        for r in self.rooms:
+            print(r, ": ", self.roomMap[r])
+        print()
 
 
 def detective(murderer, murderWeapon, startRoom, endRoom):
@@ -75,28 +111,14 @@ def detective(murderer, murderWeapon, startRoom, endRoom):
         for i in range(6):
             players[i].append(cards.pop())
     
-    possibleMurderers = ProbabilityList(people)
-    possibleStartRooms = ProbabilityList(rooms)
-    possibleWeapons = ProbabilityList(weapons)
-
-    possibleMurderers.printProbabilities()
-    print('\n')
-    possibleWeapons.printProbabilities()
-    print('\n')
-    possibleStartRooms.printProbabilities()
-    print('\n')
+    plist = ProbabilityList(endRoom)
 
     for i in range(3):
         for j in range(6):
             obj = players[j].pop()
             print("********Drew: ", obj)
-            possibleMurderers.remove(obj)
-            possibleStartRooms.remove(obj)
-            possibleWeapons.remove(obj)
-            possibleMurderers.printProbabilities()
-            possibleWeapons.printProbabilities()
-            possibleStartRooms.printProbabilities()
-            print()
+            plist.remove(obj)
+            plist.printProbabilities()
 
 def main():    
     #Pick a weapon, room, and murderer based on the logic rules
