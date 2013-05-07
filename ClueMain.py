@@ -40,39 +40,73 @@ class ProbabilityList:
         return len(self.probMap)
     
     def remove(self, obj):
-        self.probMap.pop(obj, None)
+        try:
+            self.probMap.pop(obj, None)
+        except:
+            pass
         for key in self.probMap:
-            self.probMap[key] = 1.0/len(probMap)
+            self.probMap[key] = 1.0/len(self.probMap)
 
     def removeAll(self, li):
         for obj in li:
-            self.probMap.pop(obj, None)
+            try:
+                self.probMap.pop(obj, None)
+            except:
+                pass
         for key in self.probMap:
-            self.probMap[key] = 1.0/len(probMap)
+            self.probMap[key] = 1.0/len(self.probMap)
+
+    def printProbabilities(self):
+        for key in self.probMap:
+            print(key, ": ", self.probMap[key])
+
+
 
 def detective(murderer, murderWeapon, startRoom, endRoom):
     players = {0:[], 1:[], 2:[], 3:[], 4:[], 5:[]}
     cards = people + weapons + rooms
     cards.remove(murderer)
     cards.remove(murderWeapon)
-    cards.remove(endRoom)
+    cards.remove(startRoom)
     
     #deal cards out to players
     random.shuffle(cards)
     while cards:
         for i in range(6):
             players[i].append(cards.pop())
+    
+    possibleMurderers = ProbabilityList(people)
+    possibleStartRooms = ProbabilityList(rooms)
+    possibleWeapons = ProbabilityList(weapons)
 
+    possibleMurderers.printProbabilities()
+    print('\n')
+    possibleWeapons.printProbabilities()
+    print('\n')
+    possibleStartRooms.printProbabilities()
+    print('\n')
+
+    for i in range(3):
+        for j in range(6):
+            obj = players[j].pop()
+            print("********Drew: ", obj)
+            possibleMurderers.remove(obj)
+            possibleStartRooms.remove(obj)
+            possibleWeapons.remove(obj)
+            possibleMurderers.printProbabilities()
+            possibleWeapons.printProbabilities()
+            possibleStartRooms.printProbabilities()
+            print()
 
 def main():    
     #Pick a weapon, room, and murderer based on the logic rules
     murderer = people[random.randint(0, len(people)-1)]
-    startRoom = rooms[random.randint(0, len(rooms)-1)]
-    endRoom = None
+    endRoom = rooms[random.randint(0, len(rooms)-1)]
+    startRoom = None
     if murderer == 'Scarlett' or murderer == 'Peacock' or murderer == 'White':
-        endRoom = adjacentRooms[startRoom][random.randint(0, 2)]
+        startRoom = adjacentRooms[endRoom][random.randint(0, 2)]
     else:
-        endRoom = rooms[random.randint(0, len(rooms)-1)]
+        startRoom = rooms[random.randint(0, len(rooms)-1)]
     tempLength = len(weaponsPerMurderer[murderer])
     murderWeapon = weaponsPerMurderer[murderer][random.randint(0, tempLength-1)]
     
