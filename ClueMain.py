@@ -32,6 +32,7 @@ weaponsPerMurderer = {
 
 def detective():
     players = {'p1':[], 'p2':[], 'p3':[], 'p4':[], 'p5':[], 'p6'[]}
+    cards = people + weapons + rooms
 
 def main():    
     #Pick a weapon, room, and murderer based on the logic rules
