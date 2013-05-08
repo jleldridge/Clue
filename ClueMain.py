@@ -89,10 +89,13 @@ class ProbabilityList:
     def remove(self, obj):
         if obj in people:
             self.removePerson(obj)
+            return 0
         elif obj in weapons:
             self.removeWeapon(obj)
+            return 2
         elif obj in rooms:
             self.removeRoom(obj)
+            return 1
 
     def removePerson(self, obj):
         try:
@@ -174,17 +177,18 @@ def detective(murderer, murderWeapon, startRoom, endRoom):
     plist = ProbabilityList(endRoom)
     
     counter = 1
-
+    prw = [0, 0, 0]
     for i in range(3):
         for j in range(6):
             obj = players[j].pop()
             print("*********", counter, " Draw... Drew: ", obj)
-            plist.remove(obj)
+            ctype = plist.remove(obj)
+            prw[ctype] += 1
             plist.printProbabilities()
             counter += 1
             guess = plist.haveGoodGuess()
             if guess:
-                return guess
+                return (guess, prw)
 
 def main():    
     #Pick a weapon, room, and murderer based on the logic rules
@@ -201,9 +205,14 @@ def main():
     print("murderer: ", murderer, "\nweapon: ", murderWeapon, 
         "\nstart room: ", startRoom, "\nend room: ", endRoom, "\n")
     
-    guess = detective(murderer, murderWeapon, startRoom, endRoom)
+
+    temp = detective(murderer, murderWeapon, startRoom, endRoom)
+    guess = temp[0]
+    pcards = temp[1][0]
+    rcards = temp[1][1]
+    wcards = temp[1][2]
     
-    print("Detective guess: ", guess)
+    print("Detective guess: ", guess, " in ", pcards, " People cards, ", rcards, " Room cards, and ", wcards, " Weapon cards.")
     print("Actual: ", (murderer, startRoom, murderWeapon))
 
 if __name__ == '__main__':
